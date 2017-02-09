@@ -8,6 +8,10 @@ from autobahn.wamp.exception import ApplicationError
 import os
 import time
 
+import numpy as np
+
+from DS18B20 import read_temp
+
 #os.system('modprobe w1-gpio')
 os.system('modprobe w1-therm')
 
@@ -16,35 +20,16 @@ os.system('modprobe w1-therm strong_pullup=1')
 
 class AppSession(ApplicationSession):
 
-    
     log = Logger()
 
+    ids =  {     "t1": "28-031671265dff",
+                 "t2": "28-051673a2a8ff"}
 
-    def temp_raw(self):
-    	temp_sensor = "/sys/bus/w1/devices/28-051673a2a8ff/w1_slave"
-
-        f = open(temp_sensor, 'r')
-        lines = f.readlines()
-        f.close()
-        return lines
-
-    def read_temp(self):
-        lines = self.temp_raw()
-        while lines[0].strip()[-3:] != 'YES':
-            time.sleep(0.2)
-            lines = self.temp_raw()
-        temp_output = lines[1].find('t=')
-
-        if temp_output != -1:
-            temp_string = lines[1].strip()[temp_output+2:]
-            temp_c = float(temp_string) / 1000.0
-            temp_f = temp_c * 9.0 / 5.0 + 32.0
-            return temp_c
-
+    memory = 0
 
     @inlineCallbacks
     def onJoin(self, details):
-
+        
         # PUBLISH and CALL every second .. forever
         #
         while True:
@@ -52,10 +37,18 @@ class AppSession(ApplicationSession):
             # PUBLISH an event
             #
             try:
-                t = self.read_temp()
-                yield self.publish('com.thermo.temp', t)
-                self.log.info("published to 'temp' with value {t}",
-                          t=t)
+                msg = []
+                
+                for id in self.ids:
+                    msg.append(float(read_temp(id)))
+                
+
+                if abs(sp.mean(msg) - self.memory) > 0.25:
+                    yield self.publish('com.thermo.temp', msg)
+                    self.log.info("published to 'temp' with message {msg}",
+                              msg=msg)
+                    self.memory = np.mean(average)
+
                 yield sleep(1)
 	    except:
 		yield sleep(100)
