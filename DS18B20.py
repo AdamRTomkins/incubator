@@ -16,7 +16,6 @@ def read_temp(temp_id):
     temp_sensor = "/sys/bus/w1/devices/%s/w1_slave" % temp_id
 
     lines = temp_raw(temp_sensor)
-    print lines[0].strip()[-3:]
     while lines[0].strip()[-3:] != 'YES':
         time.sleep(0.2)
         lines = temp_raw(temp_sensor)
@@ -31,6 +30,8 @@ def read_temp(temp_id):
 if __name__ == "__main__":
     while True:
         print(read_temp("28-051673a2a8ff"))
+        #print(read_temp("28-0316713189ff"))
+        print(read_temp("28-031671265dff"))
         time.sleep(1)
 
 

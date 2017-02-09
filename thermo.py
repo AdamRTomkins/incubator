@@ -36,19 +36,20 @@ class AppSession(ApplicationSession):
 
             # PUBLISH an event
             #
-            try:
-                msg = []
-                
-                for id in self.ids:
-                    msg.append(float(read_temp(id)))
-                
+            #try:
+            msg = []
+            
+            for id in self.ids:
+                msg.append(float(read_temp(self.ids[id])))
+            
 
-                if abs(sp.mean(msg) - self.memory) > 0.25:
-                    yield self.publish('com.thermo.temp', msg)
-                    self.log.info("published to 'temp' with message {msg}",
-                              msg=msg)
-                    self.memory = np.mean(average)
+            if abs(np.mean(msg) - self.memory) > 0.25:
+                yield self.publish('com.thermo.temp', msg)
+                self.log.info("published to 'temp' with message {msg}",
+                          msg=msg)
+                self.memory = np.mean(msg)
 
-                yield sleep(1)
-	    except:
-		yield sleep(100)
+            yield sleep(1)
+	    #except:
+
+	    #yield sleep(100)

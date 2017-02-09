@@ -65,8 +65,8 @@ class AppSession(ApplicationSession):
             average_temp = np.mean(msg)
             max_temp = np.max(msg)
 
-            status['cur_temp'] = average_temp
-            status['upper_temp'] = max_temp
+            status['cur_temp'] = round(average_temp,1)
+            status['upper_temp'] = round(max_temp,1)
 
             yield modulate_temperature()
             update()
